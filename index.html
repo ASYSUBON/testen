@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Vocabulary Quiz</title>
+
+  <!-- ใช้อ่านและสร้างไฟล์ Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f1f5f9;
+      --text: #1e293b;
+      --muted: #64748b;
+      --white: #ffffff;
+      --border: #dbe3ee;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Arial, "Noto Sans Thai", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: white;
+      text-align: center;
+      padding: 28px 16px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      opacity: 0.9;
+    }
+
+    main {
+      max-width: 850px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    button {
+      cursor: pointer;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 16px;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .file-box {
+      border: 2px dashed #93c5fd;
+      background: #eff6ff;
+      border-radius: 12px;
+      padding: 18px;
+      margin: 18px 0;
+    }
+
+    .file-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .upload-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 12px 18px;
+      background: var(--primary);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .upload-button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .status {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .bottom-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .menu-button {
+      min-height: 110px;
+      text-align: left;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .menu-button strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .difficulty-box {
+      margin-top: 25px;
+    }
+
+    .difficulty-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .difficulty-list label {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      background: white;
+    }
+
+    .difficulty-list input {
+      margin-right: 7px;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: bold;
+    }
+
+    .quiz-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 22px;
+      color: var(--muted);
+      font-weight: bold;
+    }
+
+    .progress-wrap {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e2e8f0;
+      margin-bottom: 28px;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.3s;
+    }
+
+    .question-guide {
+      margin-bottom: 0;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .question-word {
+      margin: 12px 0;
+      color: var(--primary);
+      text-align: center;
+      font-size: 38px;
+      overflow-wrap: anywhere;
+    }
+
+    .listen-row {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .listen-btn {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .options {
+      display: grid;
+      gap: 12px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 17px;
+      transition: 0.2s;
+    }
+
+    .option:hover {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .option input {
+      accent-color: var(--primary);
+      transform: scale(1.15);
+    }
+
+    .option.disabled {
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .option.show-correct {
+      border: 2px solid var(--success);
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .option.show-wrong {
+      border: 2px solid var(--danger);
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .answer-feedback {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 10px;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .answer-feedback.correct {
+      border: 1px solid #86efac;
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .answer-feedback.incorrect {
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .quiz-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .result-score {
+      margin: 15px 0;
+      color: var(--success);
+      text-align: center;
+      font-size: 46px;
+      font-weight: bold;
+    }
+
+    .wrong-list {
+      margin-top: 24px;
+    }
+
+    .wrong-item {
+      margin-bottom: 12px;
+      padding: 16px;
+      border-left: 5px solid var(--danger);
+      border-radius: 8px;
+      background: #fef2f2;
+    }
+
+    .wrong-item p {
+      margin: 6px 0;
+    }
+
+    .your-answer {
+      color: var(--danger);
+      font-weight: bold;
+    }
+
+    .correct-answer {
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      main {
+        margin: 16px auto;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .question-word {
+        font-size: 30px;
+      }
+
+      .quiz-top {
+        font-size: 14px;
+      }
+
+      .bottom-actions button,
+      .bottom-actions .upload-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>English Vocabulary Quiz</h1>
+    <p>ระบบทดสอบคำศัพท์ภาษาอังกฤษแบบปรนัย 4 ตัวเลือก</p>
+  </header>
+
+  <main>
+    <!-- หน้าแรก -->
+    <section id="homePage" class="card">
+      <h2>เมนูหลัก</h2>
+
+      <div class="file-box">
+        <strong>จัดการไฟล์คำศัพท์ Excel</strong>
+
+        <!-- ไม่ใช้ display:none เพื่อให้ iPad/Safari เปิดหน้าต่างเลือกไฟล์ได้ -->
+        <input
+          type="file"
+          id="excelFile"
+          accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+          class="file-input"
+        >
+
+        <div class="bottom-actions">
+          <label for="excelFile" class="upload-button">
+            อัปโหลดไฟล์คำศัพท์
+          </label>
+
+          <button class="btn-success" type="button" onclick="saveVocabularyFile()">
+            บันทึกเป็นไฟล์ Excel
+          </button>
+        </div>
+
+        <div id="fileStatus" class="status">
+          กรุณาอัปโหลดไฟล์คำศัพท์ก่อนเริ่มทดสอบ
+        </div>
+      </div>
+
+      <div class="menu-grid">
+        <button class="menu-button" type="button" onclick="showQuizSetup()">
+          <strong>เริ่มทดสอบคำศัพท์</strong>
+          สุ่มคำศัพท์ 20 ข้อ พร้อมฟังเสียงอ่านภาษาอังกฤษ
+        </button>
+
+        <button class="menu-button" type="button" onclick="showAddPage()">
+          <strong>เพิ่มคำศัพท์ใหม่</strong>
+          เพิ่มคำศัพท์และคำแปลลงในระบบ
+        </button>
+      </div>
+
+      <div id="quizSetup" class="difficulty-box hidden">
+        <h3>เลือกระดับความยาก</h3>
+
+        <div class="difficulty-list">
+          <label><input type="radio" name="difficulty" value="Easy"> ง่าย</label>
+          <label><input type="radio" name="difficulty" value="Medium" checked> ปานกลาง</label>
+          <label><input type="radio" name="difficulty" value="Hard"> ยาก</label>
+          <label><input type="radio" name="difficulty" value="All"> รวมทั้งหมด</label>
+        </div>
+
+        <div class="bottom-actions">
+          <button class="btn-primary" type="button" onclick="startQuiz()">เริ่มทำแบบทดสอบ</button>
+          <button class="btn-secondary" type="button" onclick="hideQuizSetup()">ยกเลิก</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- หน้าทดสอบ -->
+    <section id="quizPage" class="card hidden">
+      <div class="quiz-top">
+        <span id="questionNumber">ข้อ 1/20</span>
+        <span id="scoreDisplay">คะแนนสะสม: 0</span>
+      </div>
+
+      <div class="progress-wrap">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <p class="question-guide">เลือกคำแปลภาษาไทยที่ถูกต้อง</p>
+      <h2 id="questionWord" class="question-word"></h2>
+
+      <div class="listen-row">
+        <button class="listen-btn" type="button" onclick="speakCurrentWord()">
+          ฟังเสียงอ่านภาษาอังกฤษ
+        </button>
+      </div>
+
+      <div id="options" class="options"></div>
+      <div id="answerFeedback" class="answer-feedback hidden"></div>
+
+      <div class="quiz-actions">
+        <button id="nextButton" class="btn-primary" type="button" onclick="submitAnswer()">
+          ตรวจคำตอบ
+        </button>
+      </div>
+    </section>
+
+    <!-- หน้าเพิ่มคำศัพท์ -->
+    <section id="addPage" class="card hidden">
+      <h2>เพิ่มคำศัพท์ใหม่</h2>
+      <p class="status">เพิ่มแล้วกด “บันทึกเป็นไฟล์ Excel” จากหน้าแรกเพื่อดาวน์โหลดไฟล์ฉบับใหม่</p>
+
+      <div class="form-group">
+        <label for="newEnglish">คำศัพท์ภาษาอังกฤษ</label>
+        <input type="text" id="newEnglish" placeholder="เช่น Beautiful">
+      </div>
+
+      <div class="form-group">
+        <label for="newThai">คำแปลภาษาไทย</label>
+        <input type="text" id="newThai" placeholder="เช่น สวยงาม">
+      </div>
+
+      <div class="form-group">
+        <label for="newDifficulty">ระดับความยาก</label>
+        <select id="newDifficulty">
+          <option value="Easy">ง่าย</option>
+          <option value="Medium" selected>ปานกลาง</option>
+          <option value="Hard">ยาก</option>
+        </select>
+      </div>
+
+      <div class="bottom-actions">
+        <button class="btn-success" type="button" onclick="addVocabulary()">บันทึกคำศัพท์ในระบบ</button>
+        <button class="btn-secondary" type="button" onclick="goHome()">กลับหน้าแรก</button>
+      </div>
+    </section>
+
+    <!-- หน้าสรุปผล -->
+    <section id="resultPage" class="card hidden">
+      <h2 style="text-align:center;">สรุปผลการทดสอบ</h2>
+      <div id="finalScore" class="result-score">0 / 20</div>
+      <p id="scoreMessage" style="text-align:center;"></p>
+      <div id="wrongAnswers" class="wrong-list"></div>
+
+      <div class="bottom-actions">
+        <button class="btn-primary" type="button" onclick="restartQuiz()">ทำแบบทดสอบอีกครั้ง</button>
+        <button class="btn-secondary" type="button" onclick="goHome()">กลับหน้าแรก</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let vocabulary = [];
+    let quizQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let wrongAnswers = [];
+    let hasCheckedAnswer = false;
+
+    function normalizeDifficulty(value) {
+      const difficulty = String(value || "").trim().toLowerCase();
+
+      if (difficulty === "easy" || difficulty === "ง่าย") return "Easy";
+      if (difficulty === "medium" || difficulty === "ปานกลาง") return "Medium";
+      if (difficulty === "hard" || difficulty === "ยาก") return "Hard";
+
+      return "Medium";
+    }
+
+    function shuffle(items) {
+      return [...items].sort(() => Math.random() - 0.5);
+    }
+
+    document.getElementById("excelFile").addEventListener("change", function(event) {
+      const file = event.target.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        try {
+          const workbook = XLSX.read(e.target.result, { type: "array" });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+
+          const importedWords = rows
+            .map(row => ({
+              english: String(row.English || row.english || row.column_1 || "").trim(),
+              thai: String(row.Thai || row.thai || row.column_2 || "").trim(),
+              difficulty: normalizeDifficulty(
+                row.Difficulty || row.difficulty || row.column_3 || "Medium"
+              )
+            }))
+            .filter(word => word.english && word.thai);
+
+          if (importedWords.length === 0) {
+            alert("ไม่พบข้อมูลคำศัพท์ในไฟล์ กรุณาตรวจสอบว่ามีคอลัมน์ English, Thai และ Difficulty");
+            return;
+          }
+
+          vocabulary = importedWords;
+
+          const easyCount = vocabulary.filter(word => word.difficulty === "Easy").length;
+          const mediumCount = vocabulary.filter(word => word.difficulty === "Medium").length;
+          const hardCount = vocabulary.filter(word => word.difficulty === "Hard").length;
+
+          document.getElementById("fileStatus").textContent =
+            `อัปโหลดสำเร็จ: ${file.name} | รวม ${vocabulary.length} คำ | ง่าย ${easyCount} | ปานกลาง ${mediumCount} | ยาก ${hardCount}`;
+        } catch (error) {
+          document.getElementById("fileStatus").textContent =
+            "ไม่สามารถอ่านไฟล์ได้ กรุณาเลือกไฟล์ Excel ที่ถูกต้อง";
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+
+      // ทำให้สามารถเลือกไฟล์เดิมซ้ำได้
+      event.target.value = "";
+    });
+
+    function saveVocabularyFile() {
+      if (vocabulary.length === 0) {
+        alert("ยังไม่มีคำศัพท์สำหรับบันทึก กรุณาอัปโหลดหรือเพิ่มคำศัพท์ก่อน");
+        return;
+      }
+
+      const exportData = vocabulary.map((word, index) => ({
+        No: index + 1,
+        English: word.english,
+        Thai: word.thai,
+        Difficulty: word.difficulty
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+      worksheet["!cols"] = [
+        { wch: 8 },
+        { wch: 28 },
+        { wch: 35 },
+        { wch: 15 }
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Vocabulary");
+      XLSX.writeFile(workbook, "english_vocabulary.xlsx");
+
+      document.getElementById("fileStatus").textContent =
+        `บันทึกไฟล์ Excel สำเร็จ จำนวน ${vocabulary.length} คำ`;
+    }
+
+    function showQuizSetup() {
+      if (vocabulary.length === 0) {
+        alert("กรุณาอัปโหลดไฟล์คำศัพท์ Excel ก่อนเริ่มทดสอบ");
+        return;
+      }
+
+      document.getElementById("quizSetup").classList.remove("hidden");
+    }
+
+    function hideQuizSetup() {
+      document.getElementById("quizSetup").classList.add("hidden");
+    }
+
+    function showAddPage() {
+      hideAllPages();
+      document.getElementById("addPage").classList.remove("hidden");
+    }
+
+    function hideAllPages() {
+      document.getElementById("homePage").classList.add("hidden");
+      document.getElementById("quizPage").classList.add("hidden");
+      document.getElementById("addPage").classList.add("hidden");
+      document.getElementById("resultPage").classList.add("hidden");
+    }
+
+    function goHome() {
+      window.speechSynthesis.cancel();
+      hideAllPages();
+      hideQuizSetup();
+      document.getElementById("homePage").classList.remove("hidden");
+    }
+
+    function startQuiz() {
+      const selectedDifficulty = document.querySelector(
+        'input[name="difficulty"]:checked'
+      ).value;
+
+      let filteredWords = vocabulary;
+
+      if (selectedDifficulty !== "All") {
+        filteredWords = vocabulary.filter(
+          word => word.difficulty === selectedDifficulty
+        );
+      }
+
+      if (filteredWords.length < 20) {
+        alert(`ระดับที่เลือกมีคำศัพท์ ${filteredWords.length} คำ ต้องมีอย่างน้อย 20 คำเพื่อเริ่มทดสอบ`);
+        return;
+      }
+
+      quizQuestions = shuffle(filteredWords).slice(0, 20);
+      currentQuestionIndex = 0;
+      score = 0;
+      wrongAnswers = [];
+      hasCheckedAnswer = false;
+
+      hideAllPages();
+      document.getElementById("quizPage").classList.remove("hidden");
+
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const question = quizQuestions[currentQuestionIndex];
+
+      const allThaiAnswers = [...new Set(vocabulary.map(word => word.thai))]
+        .filter(thai => thai !== question.thai);
+
+      const wrongChoices = shuffle(allThaiAnswers).slice(0, 3);
+      const choices = shuffle([question.thai, ...wrongChoices]);
+
+      hasCheckedAnswer = false;
+
+      document.getElementById("questionNumber").textContent =
+        `ข้อ ${currentQuestionIndex + 1}/20`;
+
+      document.getElementById("scoreDisplay").textContent =
+        `คะแนนสะสม: ${score}`;
+
+      document.getElementById("progressBar").style.width =
+        `${(currentQuestionIndex / 20) * 100}%`;
+
+      document.getElementById("questionWord").textContent = question.english;
+
+      document.getElementById("options").innerHTML = choices
+        .map((choice, index) => `
+          <label class="option">
+            <input type="radio" name="answer" value="${escapeHtml(choice)}">
+            <span>${String.fromCharCode(65 + index)}. ${escapeHtml(choice)}</span>
+          </label>
+        `)
+        .join("");
+
+      const feedbackBox = document.getElementById("answerFeedback");
+      feedbackBox.className = "answer-feedback hidden";
+      feedbackBox.innerHTML = "";
+
+      document.getElementById("nextButton").textContent = "ตรวจคำตอบ";
+    }
+
+    function submitAnswer() {
+      const question = quizQuestions[currentQuestionIndex];
+      const nextButton = document.getElementById("nextButton");
+
+      if (hasCheckedAnswer) {
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex >= 20) {
+          showResult();
+        } else {
+          renderQuestion();
+        }
+
+        return;
+      }
+
+      const selectedAnswer = document.querySelector(
+        'input[name="answer"]:checked'
+      );
+
+      if (!selectedAnswer) {
+        alert("กรุณาเลือกคำตอบก่อนตรวจคำตอบ");
+        return;
+      }
+
+      const selectedValue = selectedAnswer.value;
+      const feedbackBox = document.getElementById("answerFeedback");
+      const optionLabels = document.querySelectorAll(".option");
+
+      hasCheckedAnswer = true;
+
+      optionLabels.forEach(label => {
+        const input = label.querySelector("input");
+
+        input.disabled = true;
+        label.classList.add("disabled");
+
+        if (input.value === question.thai) {
+          label.classList.add("show-correct");
+        }
+
+        if (input.checked && input.value !== question.thai) {
+          label.classList.add("show-wrong");
+        }
+      });
+
+      if (selectedValue === question.thai) {
+        score++;
+
+        feedbackBox.className = "answer-feedback correct";
+        feedbackBox.innerHTML = `
+          <strong>ตอบถูกต้อง</strong><br>
+          <strong>${escapeHtml(question.english)}</strong> แปลว่า
+          <strong>${escapeHtml(question.thai)}</strong>
+        `;
+      } else {
+        wrongAnswers.push({
+          english: question.english,
+          correct: question.thai,
+          selected: selectedValue
+        });
+
+        feedbackBox.className = "answer-feedback incorrect";
+        feedbackBox.innerHTML = `
+          <strong>คำตอบยังไม่ถูกต้อง</strong><br>
+          คำตอบของคุณ: <strong>${escapeHtml(selectedValue)}</strong><br>
+          คำตอบที่ถูกต้อง: <strong>${escapeHtml(question.thai)}</strong>
+        `;
+      }
+
+      document.getElementById("scoreDisplay").textContent =
+        `คะแนนสะสม: ${score}`;
+
+      nextButton.textContent =
+        currentQuestionIndex === 19 ? "ดูสรุปผล" : "ไปข้อถัดไป";
+    }
+
+    function showResult() {
+      window.speechSynthesis.cancel();
+
+      hideAllPages();
+      document.getElementById("resultPage").classList.remove("hidden");
+
+      document.getElementById("finalScore").textContent = `${score} / 20`;
+
+      let message = "";
+
+      if (score >= 18) {
+        message = "ยอดเยี่ยมมาก! คุณมีพื้นฐานคำศัพท์ที่แข็งแรง";
+      } else if (score >= 14) {
+        message = "ทำได้ดีมาก ลองทบทวนข้อที่ตอบผิดเพื่อพัฒนาเพิ่มเติม";
+      } else if (score >= 10) {
+        message = "ทำได้ดี ลองฝึกเพิ่มอีกนิดเพื่อให้แม่นยำขึ้น";
+      } else {
+        message = "ไม่เป็นไร ลองทบทวนคำศัพท์และทำแบบทดสอบอีกครั้ง";
+      }
+
+      document.getElementById("scoreMessage").textContent = message;
+
+      const wrongAnswersBox = document.getElementById("wrongAnswers");
+
+      if (wrongAnswers.length === 0) {
+        wrongAnswersBox.innerHTML = `
+          <h3>เฉลย</h3>
+          <p style="color:#16a34a; font-weight:bold;">
+            ถูกทุกข้อ ไม่มีข้อที่ต้องทบทวน
+          </p>
+        `;
+        return;
+      }
+
+      wrongAnswersBox.innerHTML = `
+        <h3>ข้อที่ตอบผิด (${wrongAnswers.length} ข้อ)</h3>
+        ${wrongAnswers.map((item, index) => `
+          <div class="wrong-item">
+            <p><strong>${index + 1}. ${escapeHtml(item.english)}</strong></p>
+            <p class="your-answer">คำตอบของคุณ: ${escapeHtml(item.selected)}</p>
+            <p class="correct-answer">คำตอบที่ถูกต้อง: ${escapeHtml(item.correct)}</p>
+          </div>
+        `).join("")}
+      `;
+    }
+
+    function speakCurrentWord() {
+      const word = quizQuestions[currentQuestionIndex]?.english;
+
+      if (!word) return;
+
+      if (!("speechSynthesis" in window)) {
+        alert("เบราว์เซอร์นี้ไม่รองรับระบบอ่านออกเสียง");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      const speech = new SpeechSynthesisUtterance(word);
+      speech.lang = "en-US";
+      speech.rate = 0.85;
+      speech.pitch = 1;
+
+      window.speechSynthesis.speak(speech);
+    }
+
+    function addVocabulary() {
+      const english = document.getElementById("newEnglish").value.trim();
+      const thai = document.getElementById("newThai").value.trim();
+      const difficulty = document.getElementById("newDifficulty").value;
+
+      if (!english || !thai) {
+        alert("กรุณากรอกคำศัพท์ภาษาอังกฤษและคำแปลภาษาไทยให้ครบ");
+        return;
+      }
+
+      const duplicate = vocabulary.some(
+        word => word.english.toLowerCase() === english.toLowerCase()
+      );
+
+      if (duplicate) {
+        alert("คำศัพท์นี้มีอยู่ในรายการแล้ว");
+        return;
+      }
+
+      vocabulary.push({
+        english: english,
+        thai: thai,
+        difficulty: difficulty
+      });
+
+      document.getElementById("newEnglish").value = "";
+      document.getElementById("newThai").value = "";
+      document.getElementById("newDifficulty").value = "Medium";
+
+      alert(`เพิ่มคำศัพท์ "${english}" เรียบร้อยแล้ว`);
+    }
+
+    function restartQuiz() {
+      goHome();
+      showQuizSetup();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
